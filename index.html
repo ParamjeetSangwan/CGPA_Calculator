@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Calculator - Grade, CGPA & Percentage Calculator</title>
+    <meta name="description" content="Calculate grades from marks and compute CGPA/TGPA with custom college grading system. Professional academic calculator for students.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'academic-blue': '#3b82f6',
+                        'academic-blue-dark': '#1d4ed8',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .grade-animation {
+            animation: gradeUpdate 0.3s ease-in-out;
+        }
+        @keyframes gradeUpdate {
+            0% { opacity: 0; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .tab-button.active {
+            background: white;
+            color: #3b82f6;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .dark .tab-button.active {
+            background: #374151;
+            color: #60a5fa;
+        }
+        .calculator-tab {
+            display: none;
+        }
+        .calculator-tab.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white dark:bg-slate-900 shadow-sm border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <svg class="text-blue-600 dark:text-blue-400 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                    <h1 class="text-lg font-semibold">Academic Calculator</h1>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="flex space-x-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+                        <button onclick="switchTab('grade')" id="grade-tab" class="tab-button px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 active">
+                            Grade
+                        </button>
+                        <button onclick="switchTab('cgpa')" id="cgpa-tab" class="tab-button px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100">
+                            CGPA
+                        </button>
+                        <button onclick="switchTab('percentage')" id="percentage-tab" class="tab-button px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100">
+                            Percentage
+                        </button>
+                    </div>
+                    <button onclick="toggleTheme()" class="p-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700">
+                        <svg id="sun-icon" class="h-4 w-4 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Disclaimer Notice -->
+        <div class="mb-6 border-l-4 border-yellow-400 bg-yellow-50 dark:bg-yellow-950 p-4 rounded-r-lg">
+            <div class="flex">
+                <div class="ml-3">
+                    <div class="text-sm text-yellow-800 dark:text-yellow-200">
+                        <strong>Important Notice:</strong> This CGPA or grade may not be entirely accurate, as grading systems vary across colleges. However, it provides an approximate value and may be slightly higher or lower than the actual CGPA.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grade Calculator -->
+        <div id="grade-calculator" class="calculator-tab active">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold mb-3">Grade Calculator</h2>
+                <p class="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+                    Enter your marks to automatically calculate grades and grade points based on your college grading system.
+                </p>
+            </div>
+
+            <!-- Grading Scale Reference -->
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 mb-8 p-6">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <svg class="text-blue-600 dark:text-blue-400 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    Grading Scale Reference
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                    <div class="border border-green-200 dark:border-green-800 rounded-lg p-3 text-center bg-green-50 dark:bg-green-950 text-green-800 dark:text-green-200">
+                        <div class="font-bold">O (90-100)</div>
+                        <div class="text-sm">Grade Point: 10</div>
+                    </div>
+                    <div class="border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-center bg-blue-50 dark:bg-blue-950 text-blue-800 dark:text-blue-200">
+                        <div class="font-bold">A+ (80-89)</div>
+                        <div class="text-sm">Grade Point: 9</div>
+                    </div>
+                    <div class="border border-indigo-200 dark:border-indigo-800 rounded-lg p-3 text-center bg-indigo-50 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-200">
+                        <div class="font-bold">A (70-79)</div>
+                        <div class="text-sm">Grade Point: 8</div>
+                    </div>
+                    <div class="border border-purple-200 dark:border-purple-800 rounded-lg p-3 text-center bg-purple-50 dark:bg-purple-950 text-purple-800 dark:text-purple-200">
+                        <div class="font-bold">B+ (60-69)</div>
+                        <div class="text-sm">Grade Point: 7</div>
+                    </div>
+                    <div class="border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 text-center bg-yellow-50 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-200">
+                        <div class="font-bold">B (50-59)</div>
+                        <div class="text-sm">Grade Point: 6</div>
+                    </div>
+                    <div class="border border-orange-200 dark:border-orange-800 rounded-lg p-3 text-center bg-orange-50 dark:bg-orange-950 text-orange-800 dark:text-orange-200">
+                        <div class="font-bold">C (40-49)</div>
+                        <div class="text-sm">Grade Point: 5</div>
+                    </div>
+                    <div class="border border-red-200 dark:border-red-800 rounded-lg p-3 text-center bg-red-50 dark:bg-red-950 text-red-800 dark:text-red-200">
+                        <div class="font-bold">F (0-39)</div>
+                        <div class="text-sm">Grade Point: 0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Subject Form -->
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 mb-6 p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Add Subject</h3>
+                    <button onclick="addGradeSubject()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center">
+                        <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Add Subject
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Subject Name (Optional)</label>
+                        <input type="text" id="grade-subject-name" placeholder="e.g., Mathematics" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Marks Obtained</label>
+                        <input type="number" id="grade-marks" placeholder="Out of 100" min="0" max="100" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="addGradeSubject()" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium">
+                            Calculate Grade
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grade Subjects List -->
+            <div id="grade-subjects-list" class="space-y-4 mb-8"></div>
+
+            <!-- Grade Summary -->
+            <div id="grade-summary" class="hidden bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <svg class="text-blue-600 dark:text-blue-400 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 00-2 2h2a2 2 0 00-2-2z"></path>
+                    </svg>
+                    Grade Summary
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="text-center">
+                        <div id="total-subjects" class="text-2xl font-bold text-blue-600 dark:text-blue-400">0</div>
+                        <div class="text-sm text-slate-600 dark:text-slate-300">Total Subjects</div>
+                    </div>
+                    <div class="text-center">
+                        <div id="average-grade" class="text-2xl font-bold text-green-600 dark:text-green-400">-</div>
+                        <div class="text-sm text-slate-600 dark:text-slate-300">Average Grade</div>
+                    </div>
+                    <div class="text-center">
+                        <div id="average-gp" class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">0.00</div>
+                        <div class="text-sm text-slate-600 dark:text-slate-300">Average Grade Point</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CGPA Calculator -->
+        <div id="cgpa-calculator" class="calculator-tab">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold mb-3">CGPA/TGPA Calculator</h2>
+                <p class="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+                    Calculate your Cumulative Grade Point Average (CGPA) or Term Grade Point Average (TGPA) based on grade points and credits.
+                </p>
+            </div>
+
+            <!-- CGPA Formula -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 dark:from-blue-700 dark:to-blue-900 rounded-xl p-6 mb-8 text-white">
+                <h3 class="text-lg font-semibold mb-3 flex items-center">
+                    <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                    </svg>
+                    CGPA/TGPA Formula
+                </h3>
+                <div class="text-center">
+                    <div class="text-xl font-mono bg-white bg-opacity-20 rounded-lg p-4 inline-block">
+                        CGPA/TGPA = Σ(Grade Point × Credit) / Σ(Credit)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add CGPA Subject Form -->
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 mb-6 p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Add Subject</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="importFromGradeCalculator()" class="border border-yellow-600 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950 px-4 py-2 rounded-md text-sm font-medium flex items-center">
+                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Import from Grade Calculator
+                        </button>
+                        <button onclick="addCGPASubject()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center">
+                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Add Subject
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Subject Name (Optional)</label>
+                        <input type="text" id="cgpa-subject-name" placeholder="e.g., Mathematics" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Grade Point</label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="cgpa-grade-point" placeholder="0-10" min="0" max="10" step="0.1" class="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
+                            <div class="flex space-x-1">
+                                <button onclick="setGradePoint(10)" class="px-2 py-1 text-xs border border-green-200 text-green-600 hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-950 rounded">O</button>
+                                <button onclick="setGradePoint(9)" class="px-2 py-1 text-xs border border-blue-200 text-blue-600 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-400 dark:hover:bg-blue-950 rounded">A+</button>
+                                <button onclick="setGradePoint(8)" class="px-2 py-1 text-xs border border-indigo-200 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-800 dark:text-indigo-400 dark:hover:bg-indigo-950 rounded">A</button>
+                                <button onclick="setGradePoint(7)" class="px-2 py-1 text-xs border border-purple-200 text-purple-600 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-950 rounded">B+</button>
+                            </div>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">O=10, A+=9, A=8, B+=7, B=6, C=5, F=0</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Credits</label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="cgpa-credits" placeholder="e.g., 3" min="0.5" max="10" step="0.5" class="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
+                            <div class="flex space-x-1">
+                                <button onclick="setCredits(1)" class="px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 rounded">1</button>
+                                <button onclick="setCredits(2)" class="px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 rounded">2</button>
+                                <button onclick="setCredits(3)" class="px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 rounded">3</button>
+                                <button onclick="setCredits(4)" class="px-2 py-1 text-xs border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 rounded">4</button>
+                            </div>
+                        </div>
+                        <div class="text-xs text-slate-500 mt-1">Common: Theory (3-4), Lab (1-2), Project (4+)</div>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="addCGPASubject()" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium">
+                            Add to CGPA
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CGPA Subjects List -->
+            <div id="cgpa-subjects-list" class="space-y-4 mb-8"></div>
+
+            <!-- CGPA Results -->
+            <div id="cgpa-results" class="hidden bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <svg class="text-blue-600 dark:text-blue-400 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        CGPA/TGPA Results
+                    </h3>
+                    <div class="flex space-x-2">
+                        <button onclick="resetCGPA()" class="border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 px-4 py-2 rounded-md text-sm font-medium flex items-center">
+                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            Reset
+                        </button>
+                        <button onclick="downloadCGPAResults()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center">
+                            <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Download Results
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                    <div class="text-center bg-blue-50 dark:bg-blue-950 rounded-lg p-4">
+                        <div id="cgpa-value" class="text-3xl font-bold text-blue-600 dark:text-blue-400">0.00</div>
+                        <div class="text-sm text-slate-600 dark:text-slate-300 font-medium">CGPA/TGPA</div>
+                    </div>
+                    <div class="text-center bg-green-50 dark:bg-green-950 rounded-lg p-4">
+                        <div id="total-credits" class="text-2xl font-bold text-green-600 dark:text-green-400">0</div>
+                        <div class="text-sm text-slate-600 dark:text-slate-300 font-medium">Total Credits</div>
+                    </div>
+                    <div class="text-center bg-yellow-50 dark:bg-yellow-950 rounded-lg p-4">
+                        <div id="total-cgpa-subjects" class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">0</div>
+                        <div class="text-sm text-slate-600 dark:text-slate-300 font-medium">Total Subjects</div>
+                    </div>
+                    <div id="result-status" class="text-center rounded-lg p-4">
+                        <div id="status-text" class="text-xl font-bold">-</div>
+                        <div class="text-sm text-slate-600 dark:text-slate-300 font-medium">Result Status</div>
+                    </div>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
+                    <h4 class="font-semibold mb-2">Performance Analysis</h4>
+                    <div id="performance-message" class="text-slate-600 dark:text-slate-300">No subjects added yet.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Percentage Calculator -->
+        <div id="percentage-calculator" class="calculator-tab">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold mb-3">Percentage Calculator</h2>
+                <p class="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+                    Calculate percentages from marks, find required marks for target percentage, and determine additional marks needed.
+                </p>
+            </div>
+
+            <!-- Percentage Tabs -->
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 mb-6">
+                <div class="border-b border-slate-200 dark:border-slate-700">
+                    <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                        <button onclick="switchPercentageTab('marks-to-percentage')" id="marks-to-percentage-tab" class="percentage-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600 dark:text-blue-400">
+                            Marks → %
+                        </button>
+                        <button onclick="switchPercentageTab('percentage-to-marks')" id="percentage-to-marks-tab" class="percentage-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
+                            % → Marks
+                        </button>
+                        <button onclick="switchPercentageTab('grade-requirements')" id="grade-requirements-tab" class="percentage-tab whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300">
+                            Requirements
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Marks to Percentage -->
+                <div id="marks-to-percentage-content" class="percentage-content p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <svg class="text-blue-600 dark:text-blue-400 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                        </svg>
+                        Calculate Percentage from Marks
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Marks Obtained</label>
+                            <input type="number" id="marks-obtained" placeholder="e.g., 85" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Total Marks</label>
+                            <input type="number" id="total-marks" placeholder="e.g., 100" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="calculatePercentage()" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium">
+                                Calculate
+                            </button>
+                        </div>
+                    </div>
+                    <div id="percentage-result" class="hidden bg-blue-50 dark:bg-blue-950 rounded-lg p-6 text-center">
+                        <div id="calculated-percentage" class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">0.00%</div>
+                        <div id="percentage-grade" class="text-lg font-semibold mb-2">Grade: -</div>
+                        <div id="percentage-details" class="text-sm text-slate-600 dark:text-slate-300">0 out of 0 marks</div>
+                    </div>
+                </div>
+
+                <!-- Percentage to Marks -->
+                <div id="percentage-to-marks-content" class="percentage-content p-6 hidden">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <svg class="text-green-600 dark:text-green-400 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                        Find Required Marks for Target Percentage
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Target Percentage</label>
+                            <input type="number" id="target-percentage" placeholder="e.g., 85" min="0" max="100" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Total Marks</label>
+                            <input type="number" id="max-marks" placeholder="e.g., 100" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="calculateRequiredMarks()" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium">
+                                Calculate
+                            </button>
+                        </div>
+                    </div>
+                    <div id="required-marks-result" class="hidden bg-green-50 dark:bg-green-950 rounded-lg p-6 text-center">
+                        <div id="calculated-required-marks" class="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">0.00 marks</div>
+                        <div id="required-marks-details" class="text-sm text-slate-600 dark:text-slate-300">Required to achieve 0% out of 0 marks</div>
+                    </div>
+                </div>
+
+                <!-- Grade Requirements -->
+                <div id="grade-requirements-content" class="percentage-content p-6 hidden">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <svg class="text-purple-600 dark:text-purple-400 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+                        </svg>
+                        Calculate Additional Marks Needed
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Current Marks</label>
+                            <input type="number" id="current-marks" placeholder="e.g., 60" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Total Possible</label>
+                            <input type="number" id="total-possible" placeholder="e.g., 100" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Desired %</label>
+                            <input type="number" id="desired-percentage" placeholder="e.g., 80" min="0" max="100" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="calculateAdditionalMarks()" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md font-medium">
+                                Calculate
+                            </button>
+                        </div>
+                    </div>
+                    <div id="additional-marks-result" class="hidden rounded-lg p-6 text-center">
+                        <div id="calculated-additional-marks" class="text-3xl font-bold mb-2">0.00 more marks</div>
+                        <div id="additional-marks-details" class="text-sm text-slate-600 dark:text-slate-300">needed to achieve 0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Percentage Grade Scale -->
+            <div class="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                <h3 class="text-lg font-semibold mb-4">Percentage Grade Scale</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                    <div class="border border-green-200 dark:border-green-800 rounded-lg p-3 text-center bg-green-50 dark:bg-green-950 text-green-800 dark:text-green-200">
+                        <div class="font-bold">A+</div>
+                        <div class="text-xs">90-100%</div>
+                    </div>
+                    <div class="border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-center bg-blue-50 dark:bg-blue-950 text-blue-800 dark:text-blue-200">
+                        <div class="font-bold">A</div>
+                        <div class="text-xs">80-89%</div>
+                    </div>
+                    <div class="border border-indigo-200 dark:border-indigo-800 rounded-lg p-3 text-center bg-indigo-50 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-200">
+                        <div class="font-bold">B+</div>
+                        <div class="text-xs">70-79%</div>
+                    </div>
+                    <div class="border border-purple-200 dark:border-purple-800 rounded-lg p-3 text-center bg-purple-50 dark:bg-purple-950 text-purple-800 dark:text-purple-200">
+                        <div class="font-bold">B</div>
+                        <div class="text-xs">60-69%</div>
+                    </div>
+                    <div class="border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 text-center bg-yellow-50 dark:bg-yellow-950 text-yellow-800 dark:text-yellow-200">
+                        <div class="font-bold">C+</div>
+                        <div class="text-xs">50-59%</div>
+                    </div>
+                    <div class="border border-orange-200 dark:border-orange-800 rounded-lg p-3 text-center bg-orange-50 dark:bg-orange-950 text-orange-800 dark:text-orange-200">
+                        <div class="font-bold">C</div>
+                        <div class="text-xs">40-49%</div>
+                    </div>
+                    <div class="border border-red-200 dark:border-red-800 rounded-lg p-3 text-center bg-red-50 dark:bg-red-950 text-red-800 dark:text-red-200">
+                        <div class="font-bold">F</div>
+                        <div class="text-xs">0-39%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <script>
+        // Global state
+        let gradeSubjects = [];
+        let cgpaSubjects = [];
+        let currentTab = 'grade';
+        let currentPercentageTab = 'marks-to-percentage';
+
+        // Theme management
+        function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
+            
+            if (isDark) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Initialize theme
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            }
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tab + '-tab').classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.calculator-tab').forEach(content => content.classList.remove('active'));
+            document.getElementById(tab + '-calculator').classList.add('active');
+        }
+
+        function switchPercentageTab(tab) {
+            currentPercentageTab = tab;
+            
+            // Update tab buttons
+            document.querySelectorAll('.percentage-tab').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+                btn.classList.add('border-transparent', 'text-slate-500', 'hover:text-slate-700', 'dark:text-slate-400', 'dark:hover:text-slate-300');
+            });
+            document.getElementById(tab + '-tab').classList.remove('border-transparent', 'text-slate-500', 'hover:text-slate-700', 'dark:text-slate-400', 'dark:hover:text-slate-300');
+            document.getElementById(tab + '-tab').classList.add('border-blue-500', 'text-blue-600', 'dark:text-blue-400');
+            
+            // Update tab content
+            document.querySelectorAll('.percentage-content').forEach(content => content.classList.add('hidden'));
+            document.getElementById(tab + '-content').classList.remove('hidden');
+        }
+
+        // Toast notifications
+        function showToast(title, description, variant = 'default') {
+            const toast = document.createElement('div');
+            toast.className = `bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg p-4 mb-2 min-w-80 animate-slide-in ${
+                variant === 'destructive' ? 'border-red-200 dark:border-red-800' : ''
+            }`;
+            
+            toast.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="font-semibold ${variant === 'destructive' ? 'text-red-800 dark:text-red-200' : ''}">${title}</div>
+                        <div class="text-sm text-slate-600 dark:text-slate-300 mt-1">${description}</div>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('toast-container').appendChild(toast);
+            
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.remove();
+                }
+            }, 5000);
+        }
+
+        // Grade scale utilities
+        const gradeScale = [
+            { min: 90, max: 100, grade: 'O', point: 10, color: 'green' },
+            { min: 80, max: 89, grade: 'A+', point: 9, color: 'blue' },
+            { min: 70, max: 79, grade: 'A', point: 8, color: 'indigo' },
+            { min: 60, max: 69, grade: 'B+', point: 7, color: 'purple' },
+            { min: 50, max: 59, grade: 'B', point: 6, color: 'yellow' },
+            { min: 40, max: 49, grade: 'C', point: 5, color: 'orange' },
+            { min: 0, max: 39, grade: 'F', point: 0, color: 'red' }
+        ];
+
+        function calculateGrade(marks) {
+            for (const scale of gradeScale) {
+                if (marks >= scale.min && marks <= scale.max) {
+                    return scale;
+                }
+            }
+            return { min: 0, max: 39, grade: 'F', point: 0, color: 'red' };
+        }
+
+        function getAverageGrade(averageGP) {
+            for (const scale of gradeScale) {
+                if (averageGP >= scale.point) {
+                    return scale.grade;
+                }
+            }
+            return 'F';
+        }
+
+        function getColorClasses(color) {
+            const colorMap = {
+                green: 'text-green-600 dark:text-green-400',
+                blue: 'text-blue-600 dark:text-blue-400',
+                indigo: 'text-indigo-600 dark:text-indigo-400',
+                purple: 'text-purple-600 dark:text-purple-400',
+                yellow: 'text-yellow-600 dark:text-yellow-400',
+                orange: 'text-orange-600 dark:text-orange-400',
+                red: 'text-red-600 dark:text-red-400'
+            };
+            return colorMap[color] || 'text-gray-600 dark:text-gray-400';
+        }
+
+        // Grade Calculator Functions
+        function addGradeSubject() {
+            const subjectName = document.getElementById('grade-subject-name').value.trim();
+            const marks = parseFloat(document.getElementById('grade-marks').value);
+            
+            if (isNaN(marks) || marks < 0 || marks > 100) {
+                showToast('Invalid Marks', 'Please enter valid marks between 0 and 100', 'destructive');
+                return;
+            }
+            
+            const gradeResult = calculateGrade(marks);
+            const newSubject = {
+                id: Date.now(),
+                name: subjectName || `Subject ${gradeSubjects.length + 1}`,
+                marks: marks,
+                grade: gradeResult.grade,
+                point: gradeResult.point,
+                color: gradeResult.color
+            };
+            
+            gradeSubjects.push(newSubject);
+            updateGradeSubjectsList();
+            updateGradeSummary();
+            
+            // Clear form
+            document.getElementById('grade-subject-name').value = '';
+            document.getElementById('grade-marks').value = '';
+            
+            showToast('Subject Added', `${newSubject.name}: ${newSubject.grade} (${newSubject.point} points)`);
+        }
+
+        function removeGradeSubject(id) {
+            gradeSubjects = gradeSubjects.filter(subject => subject.id !== id);
+            updateGradeSubjectsList();
+            updateGradeSummary();
+            showToast('Subject Removed', 'The subject has been removed from your list');
+        }
+
+        function updateGradeSubjectsList() {
+            const container = document.getElementById('grade-subjects-list');
+            container.innerHTML = '';
+            
+            gradeSubjects.forEach(subject => {
+                const subjectCard = document.createElement('div');
+                subjectCard.className = 'bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-4 grade-animation';
+                subjectCard.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h4 class="font-semibold mb-2">${subject.name}</h4>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div>
+                                    <span class="text-sm text-slate-600 dark:text-slate-300">Marks</span>
+                                    <div class="text-lg font-bold">${subject.marks}/100</div>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-slate-600 dark:text-slate-300">Grade</span>
+                                    <div class="text-lg font-bold ${getColorClasses(subject.color)}">${subject.grade}</div>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-slate-600 dark:text-slate-300">Grade Point</span>
+                                    <div class="text-lg font-bold text-blue-600 dark:text-blue-400">${subject.point}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="removeGradeSubject(${subject.id})" class="text-red-500 hover:text-red-700 p-2">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(subjectCard);
+            });
+        }
+
+        function updateGradeSummary() {
+            const summaryDiv = document.getElementById('grade-summary');
+            
+            if (gradeSubjects.length === 0) {
+                summaryDiv.classList.add('hidden');
+                return;
+            }
+            
+            summaryDiv.classList.remove('hidden');
+            
+            const totalSubjects = gradeSubjects.length;
+            const totalPoints = gradeSubjects.reduce((sum, subject) => sum + subject.point, 0);
+            const averageGP = totalSubjects > 0 ? totalPoints / totalSubjects : 0;
+            const averageGrade = getAverageGrade(averageGP);
+            
+            document.getElementById('total-subjects').textContent = totalSubjects;
+            document.getElementById('average-grade').textContent = averageGrade;
+            document.getElementById('average-gp').textContent = averageGP.toFixed(2);
+        }
+
+        // CGPA Calculator Functions
+        function setGradePoint(value) {
+            document.getElementById('cgpa-grade-point').value = value;
+        }
+
+        function setCredits(value) {
+            document.getElementById('cgpa-credits').value = value;
+        }
+
+        function addCGPASubject() {
+            const subjectName = document.getElementById('cgpa-subject-name').value.trim();
+            const gradePoint = parseFloat(document.getElementById('cgpa-grade-point').value);
+            const credits = parseFloat(document.getElementById('cgpa-credits').value);
+            
+            if (isNaN(gradePoint) || gradePoint < 0 || gradePoint > 10) {
+                showToast('Invalid Grade Point', 'Please enter valid grade point between 0 and 10', 'destructive');
+                return;
+            }
+            
+            if (isNaN(credits) || credits <= 0) {
+                showToast('Invalid Credits', 'Please enter valid credits greater than 0', 'destructive');
+                return;
+            }
+            
+            const newSubject = {
+                id: Date.now(),
+                name: subjectName || `Subject ${cgpaSubjects.length + 1}`,
+                gradePoint: gradePoint,
+                credits: credits
+            };
+            
+            cgpaSubjects.push(newSubject);
+            updateCGPASubjectsList();
+            updateCGPAResults();
+            
+            // Clear form
+            document.getElementById('cgpa-subject-name').value = '';
+            document.getElementById('cgpa-grade-point').value = '';
+            document.getElementById('cgpa-credits').value = '';
+            
+            showToast('Subject Added', `${newSubject.name} added with ${newSubject.gradePoint} grade points and ${newSubject.credits} credits`);
+        }
+
+        function removeCGPASubject(id) {
+            cgpaSubjects = cgpaSubjects.filter(subject => subject.id !== id);
+            updateCGPASubjectsList();
+            updateCGPAResults();
+            showToast('Subject Removed', 'The subject has been removed from your CGPA calculation');
+        }
+
+        function importFromGradeCalculator() {
+            if (gradeSubjects.length === 0) {
+                showToast('No Data Found', 'No subjects found in Grade Calculator to import', 'destructive');
+                return;
+            }
+            
+            cgpaSubjects = gradeSubjects.map(subject => ({
+                id: Date.now() + Math.random(),
+                name: subject.name,
+                gradePoint: subject.point,
+                credits: 3 // Default credit value
+            }));
+            
+            updateCGPASubjectsList();
+            updateCGPAResults();
+            
+            showToast('Import Successful', `Imported ${gradeSubjects.length} subjects from Grade Calculator with default 3 credits each`);
+        }
+
+        function resetCGPA() {
+            if (cgpaSubjects.length === 0) {
+                showToast('Nothing to Reset', 'No subjects found to reset', 'destructive');
+                return;
+            }
+            
+            cgpaSubjects = [];
+            updateCGPASubjectsList();
+            updateCGPAResults();
+            showToast('Data Reset', 'All CGPA data has been reset');
+        }
+
+        function downloadCGPAResults() {
+            if (cgpaSubjects.length === 0) {
+                showToast('No Data', 'No data available to download', 'destructive');
+                return;
+            }
+            
+            const result = calculateCGPA();
+            
+            let content = 'CGPA/TGPA CALCULATION RESULTS\\n';
+            content += '================================\\n\\n';
+            content += `Final CGPA/TGPA: ${result.cgpa.toFixed(2)}\\n`;
+            content += `Total Credits: ${result.totalCredits}\\n`;
+            content += `Total Subjects: ${cgpaSubjects.length}\\n`;
+            content += `Result Status: ${result.status}\\n\\n`;
+            content += 'SUBJECT WISE BREAKDOWN:\\n';
+            content += '------------------------\\n';
+            
+            cgpaSubjects.forEach((subject, index) => {
+                content += `${index + 1}. ${subject.name}\\n`;
+                content += `   Grade Point: ${subject.gradePoint}\\n`;
+                content += `   Credits: ${subject.credits}\\n`;
+                content += `   Weighted Points: ${(subject.gradePoint * subject.credits).toFixed(2)}\\n\\n`;
+            });
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CGPA_Results_${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            showToast('Download Started', 'Your CGPA results have been downloaded');
+        }
+
+        function updateCGPASubjectsList() {
+            const container = document.getElementById('cgpa-subjects-list');
+            container.innerHTML = '';
+            
+            cgpaSubjects.forEach(subject => {
+                const subjectCard = document.createElement('div');
+                subjectCard.className = 'bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-4';
+                subjectCard.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="flex-1">
+                            <h4 class="font-semibold mb-2">${subject.name}</h4>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div>
+                                    <span class="text-sm text-slate-600 dark:text-slate-300">Grade Point</span>
+                                    <div class="text-lg font-bold text-blue-600 dark:text-blue-400">${subject.gradePoint}</div>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-slate-600 dark:text-slate-300">Credits</span>
+                                    <div class="text-lg font-bold">${subject.credits}</div>
+                                </div>
+                                <div>
+                                    <span class="text-sm text-slate-600 dark:text-slate-300">Weighted Points</span>
+                                    <div class="text-lg font-bold text-green-600 dark:text-green-400">${(subject.gradePoint * subject.credits).toFixed(2)}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="removeCGPASubject(${subject.id})" class="text-red-500 hover:text-red-700 p-2">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(subjectCard);
+            });
+        }
+
+        function calculateCGPA() {
+            if (cgpaSubjects.length === 0) {
+                return {
+                    cgpa: 0,
+                    totalCredits: 0,
+                    status: '-',
+                    statusColor: 'gray',
+                    statusBg: 'bg-gray-50 dark:bg-gray-950',
+                    performanceMessage: 'No subjects added yet.'
+                };
+            }
+            
+            const totalCredits = cgpaSubjects.reduce((sum, subject) => sum + subject.credits, 0);
+            const weightedPoints = cgpaSubjects.reduce((sum, subject) => sum + (subject.gradePoint * subject.credits), 0);
+            const cgpa = weightedPoints / totalCredits;
+            
+            let status = 'Passed';
+            let statusColor = 'green';
+            let statusBg = 'bg-green-50 dark:bg-green-950';
+            
+            if (cgpaSubjects.some(subject => subject.gradePoint === 0)) {
+                status = 'Reappear';
+                statusColor = 'red';
+                statusBg = 'bg-red-50 dark:bg-red-950';
+            } else if (cgpa >= 8.5) {
+                status = 'Distinction';
+                statusColor = 'green';
+                statusBg = 'bg-green-50 dark:bg-green-950';
+            } else if (cgpa >= 7.0) {
+                status = 'First Class';
+                statusColor = 'blue';
+                statusBg = 'bg-blue-50 dark:bg-blue-950';
+            } else if (cgpa >= 6.0) {
+                status = 'Second Class';
+                statusColor = 'yellow';
+                statusBg = 'bg-yellow-50 dark:bg-yellow-950';
+            }
+            
+            let performanceMessage = '';
+            if (cgpa >= 9.0) {
+                performanceMessage = 'Outstanding performance! You are excelling in your academics.';
+            } else if (cgpa >= 8.0) {
+                performanceMessage = 'Excellent work! Keep maintaining this high standard.';
+            } else if (cgpa >= 7.0) {
+                performanceMessage = 'Good performance! There is room for improvement.';
+            } else if (cgpa >= 6.0) {
+                performanceMessage = 'Satisfactory performance. Consider focusing more on studies.';
+            } else {
+                performanceMessage = 'You need to improve your performance significantly.';
+            }
+            
+            return {
+                cgpa,
+                totalCredits,
+                status,
+                statusColor,
+                statusBg,
+                performanceMessage
+            };
+        }
+
+        function updateCGPAResults() {
+            const resultsDiv = document.getElementById('cgpa-results');
+            
+            if (cgpaSubjects.length === 0) {
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+            
+            resultsDiv.classList.remove('hidden');
+            
+            const result = calculateCGPA();
+            
+            document.getElementById('cgpa-value').textContent = result.cgpa.toFixed(2);
+            document.getElementById('total-credits').textContent = result.totalCredits;
+            document.getElementById('total-cgpa-subjects').textContent = cgpaSubjects.length;
+            
+            const statusDiv = document.getElementById('result-status');
+            statusDiv.className = `text-center rounded-lg p-4 ${result.statusBg}`;
+            document.getElementById('status-text').className = `text-xl font-bold text-${result.statusColor}-600 dark:text-${result.statusColor}-400`;
+            document.getElementById('status-text').textContent = result.status;
+            
+            document.getElementById('performance-message').textContent = result.performanceMessage;
+        }
+
+        // Percentage Calculator Functions
+        function getPercentageGrade(percentage) {
+            if (percentage >= 90) return { grade: "A+", color: "text-green-600 dark:text-green-400" };
+            if (percentage >= 80) return { grade: "A", color: "text-blue-600 dark:text-blue-400" };
+            if (percentage >= 70) return { grade: "B+", color: "text-indigo-600 dark:text-indigo-400" };
+            if (percentage >= 60) return { grade: "B", color: "text-purple-600 dark:text-purple-400" };
+            if (percentage >= 50) return { grade: "C+", color: "text-yellow-600 dark:text-yellow-400" };
+            if (percentage >= 40) return { grade: "C", color: "text-orange-600 dark:text-orange-400" };
+            return { grade: "F", color: "text-red-600 dark:text-red-400" };
+        }
+
+        function calculatePercentage() {
+            const obtained = parseFloat(document.getElementById('marks-obtained').value);
+            const total = parseFloat(document.getElementById('total-marks').value);
+            
+            if (isNaN(obtained) || isNaN(total) || total <= 0) {
+                showToast('Invalid Input', 'Please enter valid marks. Total marks must be greater than 0.', 'destructive');
+                return;
+            }
+            
+            if (obtained > total) {
+                showToast('Invalid Input', 'Marks obtained cannot be greater than total marks.', 'destructive');
+                return;
+            }
+            
+            const percentage = (obtained / total) * 100;
+            const gradeResult = getPercentageGrade(percentage);
+            
+            document.getElementById('calculated-percentage').textContent = percentage.toFixed(2) + '%';
+            document.getElementById('percentage-grade').innerHTML = `Grade: <span class="${gradeResult.color}">${gradeResult.grade}</span>`;
+            document.getElementById('percentage-details').textContent = `${obtained} out of ${total} marks`;
+            document.getElementById('percentage-result').classList.remove('hidden');
+            
+            showToast('Percentage Calculated', `Your percentage is ${percentage.toFixed(2)}%`);
+        }
+
+        function calculateRequiredMarks() {
+            const percentage = parseFloat(document.getElementById('target-percentage').value);
+            const total = parseFloat(document.getElementById('max-marks').value);
+            
+            if (isNaN(percentage) || isNaN(total) || percentage < 0 || percentage > 100 || total <= 0) {
+                showToast('Invalid Input', 'Please enter valid percentage (0-100) and total marks.', 'destructive');
+                return;
+            }
+            
+            const required = (percentage / 100) * total;
+            
+            document.getElementById('calculated-required-marks').textContent = required.toFixed(2) + ' marks';
+            document.getElementById('required-marks-details').textContent = `Required to achieve ${percentage}% out of ${total} marks`;
+            document.getElementById('required-marks-result').classList.remove('hidden');
+            
+            showToast('Required Marks Calculated', `You need ${required.toFixed(2)} marks to achieve ${percentage}%`);
+        }
+
+        function calculateAdditionalMarks() {
+            const current = parseFloat(document.getElementById('current-marks').value);
+            const total = parseFloat(document.getElementById('total-possible').value);
+            const desired = parseFloat(document.getElementById('desired-percentage').value);
+            
+            if (isNaN(current) || isNaN(total) || isNaN(desired) || desired < 0 || desired > 100 || total <= 0) {
+                showToast('Invalid Input', 'Please enter valid values. Percentage should be 0-100.', 'destructive');
+                return;
+            }
+            
+            if (current > total) {
+                showToast('Invalid Input', 'Current marks cannot be greater than total possible marks.', 'destructive');
+                return;
+            }
+            
+            const requiredTotal = (desired / 100) * total;
+            const additional = requiredTotal - current;
+            
+            const resultDiv = document.getElementById('additional-marks-result');
+            
+            if (additional <= 0) {
+                resultDiv.className = 'bg-green-50 dark:bg-green-950 rounded-lg p-6 text-center';
+                document.getElementById('calculated-additional-marks').innerHTML = 'Goal Achieved! 🎉';
+                document.getElementById('calculated-additional-marks').className = 'text-3xl font-bold text-green-600 dark:text-green-400 mb-2';
+                document.getElementById('additional-marks-details').textContent = `Current percentage: ${((current/total)*100).toFixed(2)}%`;
+                showToast('Goal Already Achieved', `You already have the desired percentage! Current: ${((current/total)*100).toFixed(2)}%`);
+            } else {
+                resultDiv.className = 'bg-purple-50 dark:bg-purple-950 rounded-lg p-6 text-center';
+                document.getElementById('calculated-additional-marks').textContent = additional.toFixed(2) + ' more marks';
+                document.getElementById('calculated-additional-marks').className = 'text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2';
+                document.getElementById('additional-marks-details').textContent = `needed to achieve ${desired}%`;
+                showToast('Additional Marks Calculated', `You need ${additional.toFixed(2)} more marks to achieve ${desired}%`);
+            }
+            
+            resultDiv.classList.remove('hidden');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme();
+            
+            // Add keypress event listeners
+            document.getElementById('grade-marks').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addGradeSubject();
+            });
+            
+            document.getElementById('cgpa-credits').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addCGPASubject();
+            });
+        });
+    </script>
+</body>
+</html>
